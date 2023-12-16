@@ -15,6 +15,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 from spotipy.oauth2 import SpotifyClientCredentials
 
+from taylorColours import colour_creator
+
 # Converts Name and Artist to mp3 using the YouTube API
 def to_mp3(name, artist):
     # Get the Link of our song
@@ -136,9 +138,14 @@ def spotifyThread(name, artist, client):
     
     # Retrieve Audio Features (standard)
     standardAudioFeats = spotify.audio_features([track])[0]
-    features = {
-    }
-
+    dance = standardAudioFeats["danceability"]
+    energy = standardAudioFeats["energy"]
+    tempo = standardAudioFeats["tempo"]
+    valence = standardAudioFeats["valence"]
+    
+    # Do some algorithm processing $#!7 to get the colours, because why not?
+    colors, weight = colour_creator(dance, energy, tempo, valence)
+    
 # Run both threads concurrently
 t1 = threading.Thread(target=youTubeThread, args=(n, artist, client))
 t2 = threading.Thread(target=spotifyThread, args=(n, artist, client))
