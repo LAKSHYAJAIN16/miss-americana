@@ -142,6 +142,7 @@ def spotifyThread(name, artist, client):
     energy = standardAudioFeats["energy"]
     tempo = standardAudioFeats["tempo"]
     valence = standardAudioFeats["valence"]
+    print(standardAudioFeats)
     
     # Do some algorithm processing $#!7 to get the colours, because why not?
     colors, weight = colour_creator(dance, energy, tempo, valence)
