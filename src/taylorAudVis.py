@@ -1,6 +1,6 @@
 # IMPORTING PACKAGES
-
 import time
+import paho.mqtt.client as mqtt
 from multiprocessing import Process
 
 import matplotlib.pyplot as plt
@@ -10,9 +10,8 @@ from pydub import AudioSegment
 from pydub.playback import play
 
 # PREPARING THE AUDIO DATA
-def data_main(wavFile, mqtt):
+def data_main(wavFile, mqtt : mqtt.Client):
     mqtt.loop_start()
-    mqtt.publish("RICKASTLEY", "starting")
     mqtt.loop_stop()
     # Retrieve the data from the wav file
     data, samplerate = sf.read(wavFile)
