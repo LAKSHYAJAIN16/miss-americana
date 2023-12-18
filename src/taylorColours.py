@@ -3,8 +3,8 @@ def colour_creator(dance, energy, tempo, valence):
     types = [
         "sad energy",
         "happy energy",
-        "sad no energy",
-        "happy no energy"
+        "sad no_energy",
+        "happy no_energy"
     ]
     
     # Define weight
