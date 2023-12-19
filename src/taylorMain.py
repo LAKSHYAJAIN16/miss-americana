@@ -1,5 +1,5 @@
 import os
-import time
+import json
 import spotipy
 import threading
 import subprocess
@@ -61,14 +61,23 @@ def spotifyThread(name, artist, client):
     
     # Retrieve Audio Features (standard)
     standardAudioFeats = spotify.audio_features([track])[0]
+    acoustic = standardAudioFeats["acousticness"]
     dance = standardAudioFeats["danceability"]
     energy = standardAudioFeats["energy"]
     tempo = standardAudioFeats["tempo"]
     valence = standardAudioFeats["valence"]
-    print(standardAudioFeats)
     
     # Do some algorithm processing $#!7 to get the colours, because why not?
-    colors, weight = colour_creator(dance, energy, tempo, valence)
+    colors, weight, type = colour_creator(acoustic, dance, energy, tempo, valence)
+    print(colors)
+    print(weight)
+    print(type)
+    
+    # Get audio analysis, because why not?
+    aud_analysis = spotify.audio_analysis(track)
+    
+    # Output the analysis to our folder, because why not?
+    json.dump(aud_analysis, open("analysis/" + n + "_by_" + artist + ".json","w+"))
 
 def youtubeThread(name, artist):
     # YouTube Thread
@@ -86,10 +95,10 @@ def youtubeThread(name, artist):
     song = AudioSegment.from_wav(wav)
     play(song)
 
-t1 = threading.Thread(target=youtubeThread, args=(n, artist))
-t2 = threading.Thread(target=spotifyThread, args=(n, artist, client))
+t1 = threading.Thread(target=spotifyThread, args=(n, artist, client))
+t2 = threading.Thread(target=youtubeThread, args=(n, artist))
 t1.start()
 t1.join()
-t2.start()
-t2.join()
+# t2.start()
+# t2.join()
 client.loop_stop()
