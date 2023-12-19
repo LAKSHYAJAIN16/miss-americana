@@ -3,9 +3,7 @@ import json
 import spotipy
 import threading
 import subprocess
-import matplotlib.pyplot as plt
-import numpy as np
-import soundfile as sf
+import requests
 import paho.mqtt.client as mqtt
 
 from youtubesearchpython import VideosSearch
@@ -95,10 +93,24 @@ def youtubeThread(name, artist):
     song = AudioSegment.from_wav(wav)
     play(song)
 
+def lyricThread(name, artist):
+    # Assemble URL
+    url = "https://lrclib.net/api/search?track_name={0}&artist_name={1}"
+    url = url.format(name, artist)
+    lyrics = requests.get(url).json()
+    our_lyrics = lyrics[0]["syncedLyrics"].split("\n")
+    json.dump(our_lyrics, open("lyrics/" + n + "_by_" + artist + ".json","w+"))
+    
+# Threads, because WTF IS GOING ON
 t1 = threading.Thread(target=spotifyThread, args=(n, artist, client))
 t2 = threading.Thread(target=youtubeThread, args=(n, artist))
-t1.start()
-t1.join()
+t3 = threading.Thread(target=lyricThread, args=(n, artist))
+
+# Spotify Thread
+t3.start()
+# t1.start()
+t3.join()
+# t1.join()
 # t2.start()
 # t2.join()
 client.loop_stop()
