@@ -2,13 +2,14 @@ import json
 import spotipy
 import threading
 import requests
+import soundfile as sf
 import paho.mqtt.client as mqtt
 
 from pydub import AudioSegment
 from pydub.playback import play
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from taylorColours import colour_creator
+from modules.taylorColours import colour_creator
 from modules.tayMp3 import to_mp3
 from modules.tayWav import to_wav
 
@@ -91,9 +92,9 @@ t3 = threading.Thread(target=lyricThread, args=(n, artist))
 
 # Spotify Thread
 t3.start()
+t2.start()
 t1.start()
 t3.join()
 t1.join()
-# t2.start()
-# t2.join()
+t2.join()
 client.loop_stop()
