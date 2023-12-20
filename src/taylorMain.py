@@ -12,6 +12,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from modules.taylorColours import colour_creator
 from modules.tayMp3 import to_mp3
 from modules.tayWav import to_wav
+from utils.taylorThreading import ThreadWithReturnValue
 
 # Enter name of song and artist 
 n = input("Enter the name of the Song: ")
@@ -48,18 +49,31 @@ def spotifyThread(name, artist):
     
     # Get audio analysis, because why not?
     aud_analysis = spotify.audio_analysis(track)
-
-    # Output the analysis to our folder, because why not?
-    json.dump(aud_analysis, open("analysis/" + n + "_by_" + artist + ".json","w+"))
     
-    return {
+    # Revise the sections a bit to remove unneccesary data
+    new_beats = []
+    for j in aud_analysis["beats"]:
+        new_beats.append([])
+        new_beats[-1].append(round(j["start"], 2))
+        new_beats[-1].append(round(j["duration"], 2))
+        
+    new_sections = []
+    for k in aud_analysis["sections"]:
+        new_sections.append(k["start"])
+        
+    OUT = {
         "track_id" : track,
         "colours" : colors,
         "weight" : weight,
         "type" : type,
-        "sections" : aud_analysis["sections"],
-        "beats" : aud_analysis["beats"]
-    }
+        "sections" : new_sections,
+        "beats" : new_beats
+    }    
+    
+    # JSON write
+    json.dump(OUT, open("analysis/" + n + "_by_" + artist + ".json","w+"))
+    
+    return OUT
 
 def youtubeThread(name, artist):
     # YouTube Thread
@@ -75,7 +89,7 @@ def youtubeThread(name, artist):
     
     # Play Song
     song = AudioSegment.from_wav(wav)
-    play(song)
+    return song
 
 def lyricThread(name, artist):
     # Assemble URL
@@ -84,17 +98,31 @@ def lyricThread(name, artist):
     lyrics = requests.get(url).json()
     our_lyrics = lyrics[0]["syncedLyrics"].split("\n")
     json.dump(our_lyrics, open("lyrics/" + n + "_by_" + artist + ".json","w+"))
+    return our_lyrics
     
 # Threads, because WTF IS GOING ON
-t1 = threading.Thread(target=spotifyThread, args=(n, artist))
-t2 = threading.Thread(target=youtubeThread, args=(n, artist))
-t3 = threading.Thread(target=lyricThread, args=(n, artist))
+t1 = ThreadWithReturnValue(target=spotifyThread, args=(n, artist))
+t2 = ThreadWithReturnValue(target=youtubeThread, args=(n, artist))
+t3 = ThreadWithReturnValue(target=lyricThread, args=(n, artist))
 
 # Spotify Thread
 t3.start()
 t2.start()
 t1.start()
-t3.join()
-t1.join()
-t2.join()
+lyrics = t3.join()
+spotify = t1.join()
+song = t2.join()
+
+# Start communication for MQTT
+client.publish("RICKASTLEY", "START_PROCESSING")
+
+# First, send the name and artist
+client.publish("RICKASTLEY","1:{0}".format(n))
+client.publish("RICKASTLEY","2:{0}".format(artist))
+
+# Then we send the colors
+for k in range(len(spotify["colours"])):
+    client.publish("RICKASTLEY","3:{k}:{0}".format(spotify["colours"][k]))
+
+# Send the data
 client.loop_stop()
