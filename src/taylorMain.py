@@ -1,6 +1,7 @@
 import json
 import spotipy
-import threading
+import time
+import sched
 import requests
 import soundfile as sf
 import paho.mqtt.client as mqtt
@@ -15,6 +16,12 @@ from modules.tayWav import to_wav
 from utils.taylorThreading import ThreadWithReturnValue
 
 # Enter name of song and artist 
+BUFFER_SIZE_SECTIONS = 5
+BUFFER_SIZE_BEATS = 30
+BUFFER_SIZE_SEGMENTS = 70
+SAMPLE_DEGREE = 2
+SAMPLE_RATE = 10^(-SAMPLE_DEGREE)
+
 n = input("Enter the name of the Song: ")
 artist = input("Enter the name of the Artist : ")
 
@@ -54,12 +61,14 @@ def spotifyThread(name, artist):
     new_beats = []
     for j in aud_analysis["beats"]:
         new_beats.append([])
-        new_beats[-1].append(round(j["start"], 2))
-        new_beats[-1].append(round(j["duration"], 2))
+        new_beats[-1].append(round(j["start"], SAMPLE_DEGREE))
+        new_beats[-1].append(round(j["duration"], SAMPLE_DEGREE))
         
     new_sections = []
     for k in aud_analysis["sections"]:
-        new_sections.append(k["start"])
+        new_sections.append([])
+        new_sections[-1].append(round(k["start"], SAMPLE_DEGREE))
+        new_sections[-1].append(round(k["loudness"], SAMPLE_DEGREE))
         
     OUT = {
         "track_id" : track,
@@ -89,7 +98,7 @@ def youtubeThread(name, artist):
     
     # Play Song
     song = AudioSegment.from_wav(wav)
-    return song
+    return [song, wav]
 
 def lyricThread(name, artist):
     # Assemble URL
@@ -121,8 +130,23 @@ client.publish("RICKASTLEY","1:{0}".format(n))
 client.publish("RICKASTLEY","2:{0}".format(artist))
 
 # Then we send the colors
+print(spotify["colours"])
 for k in range(len(spotify["colours"])):
-    client.publish("RICKASTLEY","3:{k}:{0}".format(spotify["colours"][k]))
+    client.publish("RICKASTLEY","3:{0}:{1}".format(k, spotify["colours"][k]))
+
+# Then, we send the first load of sections (first send initialization message and then the content)
+client.publish("RICKASTLEY","4:S:none")
+cur_sections_iter = 0
+sectionBuf = spotify["sections"][cur_sections_iter:cur_sections_iter + BUFFER_SIZE_SECTIONS]
+print(sectionBuf)
+for m in range(len(sectionBuf)):
+    client.publish("RICKASTLEY","4:N:{0}:{1}".format(m, sectionBuf[m][0]))
+    client.publish("RICKASTLEY","4:M:{0}:{1}".format(m, sectionBuf[m][1]))
+
+# Get length of song
+sf_file = sf.SoundFile(song[1])
+dur = round((sf_file.frames / sf_file.samplerate),2)
+play(song[0])
 
 # Send the data
 client.loop_stop()
