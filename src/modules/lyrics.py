@@ -7,5 +7,5 @@ def lyricThread(name, artist):
     url = url.format(name, artist)
     lyrics = requests.get(url).json()
     our_lyrics = lyrics[0]["syncedLyrics"].split("\n")
-    json.dump(our_lyrics, open("lyrics/" + n + "_by_" + artist + ".json","w+"))
+    json.dump(our_lyrics, open("data/lyrics/" + name + "_by_" + artist + ".json","w+"))
     return our_lyrics
