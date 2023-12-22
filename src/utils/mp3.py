@@ -17,7 +17,7 @@ def to_mp3(name, artist):
     video = yt.streams.filter(only_audio=True).first() 
     
     # Download to hard drive
-    out_file = video.download(r"C:\Users\USER\Desktop\CS Mr. Penney Stuff\Music Visualizer\auds")
+    out_file = video.download(r"C:\Users\USER\Desktop\CS Mr. Penney Stuff\Music Visualizer\data\auds")
     base, ext = os.path.splitext(out_file) 
     new_file = base + '.mp3'
     os.rename(out_file, new_file)
