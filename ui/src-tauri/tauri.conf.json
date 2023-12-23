@@ -34,9 +34,9 @@
     },
     "windows": [
       {
-        "fullscreen": false,
+        "fullscreen": true,
         "resizable": true,
-        "title": "tauri-app",
+        "title": "miss americana",
         "width": 800,
         "height": 600
       }
