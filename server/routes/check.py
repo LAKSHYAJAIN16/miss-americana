@@ -19,6 +19,7 @@ def check_route(track):
     if blob.exists():
         # Do nothing
         print("Song {0} by {1} is already indexed".format(track["name"], track["art_string"]))
+        return 0
     else:
         try:
             # Download the Mp3 Track
@@ -31,6 +32,8 @@ def check_route(track):
             
             # Delete file after we upload it
             os.remove(songPath)
+            return 1
         except:
             # Blacklisted Song
             print("Song {0} by {1} is Blacklisted".format(track["name"], track["art_string"]))
+            return 2
