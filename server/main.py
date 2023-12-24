@@ -12,7 +12,7 @@ def check_main():
     already = 0
     rn = 0
     for track in data:
-        # Every Track
+        # For Every Track, check if we've already indexed it
         response = check_route(track)
         if response == 2:
             black.append(track["id"])

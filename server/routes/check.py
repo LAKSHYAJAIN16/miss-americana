@@ -14,8 +14,11 @@ def check_route(track):
             'storageBucket': 'kronos-3243f.appspot.com'
         })
         
+    # Bucket and Blob
     bucket = storage.bucket()
     blob = bucket.blob('{0}.mp3'.format(track_id))
+    
+    # Check if it exists
     if blob.exists():
         # Do nothing
         print("Song {0} by {1} is already indexed".format(track["name"], track["art_string"]))
