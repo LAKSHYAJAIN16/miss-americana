@@ -15,7 +15,7 @@ function App() {
     setSongs(JSON.parse(localStorage.getItem("BUF_LIKED_SONGS")));
   }, [playlists, user, token, songs]);
 
-  return <p className="text-white font-josepfin ml-5 mt-5 text-3xl">Welcome, {user.name}</p>;
+  return <p className="text-white font-josepfin ml-5 mt-5 text-3xl">Welcome, {user ? user.name : ""}</p>;
 }
 
 export default App;
