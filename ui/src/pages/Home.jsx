@@ -12,9 +12,11 @@ export default function Home() {
         'because spotify sucks'
       </p>
 
-      <button className="text-2xl bg-white mt-10 transition-all pl-9 pr-9 pt-1 pb-1 rounded-xl hover:scale-110 font-josepfin">
-        start vibing
-      </button>
+      <a href="/onboard">
+        <button className="text-2xl bg-white mt-10 transition-all pl-9 pr-9 pt-1 pb-1 rounded-xl hover:scale-110 font-josepfin">
+          start vibing
+        </button>
+      </a>
     </div>
   );
 }
