@@ -3,6 +3,7 @@ import Logo from "../assets/crown.png"; // Tell webpack this JS file uses this i
 import { SpotifyAuth, Scopes } from "react-spotify-auth";
 import "react-spotify-auth/dist/index.css"; // if using the included styles
 import Cookies from "js-cookie";
+import keys from "../missamericana.config";
 
 export default function Onboard() {
   async function setToken(token) {
@@ -120,6 +121,18 @@ export default function Onboard() {
 
     // Now, format array
     console.log(likedSongs);
+
+    // Send Request for our song buffer to Backend
+    const backendRequest = await fetch(keys.backend + "/check", {
+      method: "POST",
+      body: JSON.stringify(likedSongs),
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    const backendBody = await backendRequest.json();
+    console.log(backendBody);
     localStorage.setItem("BUF_LIKED_SONGS", JSON.stringify(likedSongs));
   }
 
