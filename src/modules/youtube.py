@@ -10,8 +10,7 @@ def youtubeThread(name, artist):
 
     # Retrieve the data from the wav file
     data, samplerate = sf.read(wav)
-
-    n = len(data)  # the length of the arrays contained in data
+    
     Fs = samplerate  # the sample rate
     print((1 / Fs)*1000)
     
