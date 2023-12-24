@@ -3,7 +3,7 @@ import Logo from "../assets/crown.png"; // Tell webpack this JS file uses this i
 import { SpotifyAuth, Scopes } from "react-spotify-auth";
 import "react-spotify-auth/dist/index.css"; // if using the included styles
 import Cookies from "js-cookie";
-import keys from "../missamericana.config";
+import keys from "../config/missamericana.config";
 
 export default function Onboard() {
   async function setToken(token) {
