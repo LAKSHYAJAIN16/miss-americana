@@ -1,7 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Adafruit_NeoPixel.h>
-#include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
 // Define LCD properties
@@ -11,10 +10,10 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 const char* WifiID = "MYHDSB";
 
 // Mqtt Configuration
-const char* MQTT_SERVER "awesome-fisher.cloudmqtt.com"
-const char* MQTT_PORT 1883
-const char* MQTT_USERNAME "gkvpckep"
-const char* MQTT_PASSWORD "yGbZQKc8MAma"
+const char* MQTT_SERVER = "awesome-fisher.cloudmqtt.com";
+const int MQTT_PORT = 1883;
+const char* MQTT_USERNAME = "gkvpckep";
+const char* MQTT_PASSWORD = "yGbZQKc8MAma";
 
 // Client ID
 const char* clientId = ("ESP8266-" + String(random(0xffff), HEX)).c_str();
@@ -64,15 +63,19 @@ int startMS = 0;
 
 // Setup
 void setup() {
+  // Start Serial Communication
   Serial.begin(115200);
   delay(10);
 
+  // Connect to Wifi
   WiFi.begin(WifiID);
 
+  // While we aren't connected, stop.
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
 
+  // Serial print message once we connect
   Serial.println("Connected to MYHDSB");
   Serial.print("Assigned IP address: ");
   Serial.println(WiFi.localIP());
@@ -106,9 +109,12 @@ void setup() {
 
 // Set Strip to certain color
 void setStripColor(uint32_t color) {
+  // Set the color each pixel by each pixel
   for (int i = 0; i < strip1.numPixels(); i++) {
     strip1.setPixelColor(i, color);
   }
+
+  // Light up the strip
   strip1.show();
 }
 
@@ -156,19 +162,23 @@ void displayText(String text) {
 
 // Function to convert Color Code to RGB
 void convertToRGB(String text){
-// TO DO : ADD CODE
+// TO DO : ADD CODE TO CONVERT HEX TO RGB
 }
 
 void loop() {
+  // If we aren't connected, reconnect
   if (!client.connected()) {
     reconnect();
   }
+
+  // Loop function for esp8266
   client.loop();
 
   // If we're running, do the millisocond calculation
-  if(running){
+  if(running == true){
     // Calculate time elapsed
     long time = millis() - startMS;
+    Serial.println(time);
 
     // Check for events
     // If we're past a certain lyric's starting, display that
@@ -184,6 +194,7 @@ void loop() {
       setStripColor(strip1.Color(255,255,255));
     }
     else{
+      // Make it not light up
       setStripColor(strip1.Color(0,0,0));
     }
 
@@ -218,15 +229,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
     beats_iter = 0;
     lyrics_iter = 0;
   }
+  else if(message == "STOP"){
+    // Start the Loop
+    startMS = millis();
+    running = true;
+  }
   else{
     // Get Switching character
     String firstLetter = message.substring(0,1);
+
+    // Get message payload after the first letter.
     String payload = message.substring(2);
 
     // Conditional Logic for each type of message
     // Colors
     if(firstLetter == "3"){
-      // Color. We need the index as well
+      // Color. We need the index as well, so extract that first.
       int colorIndex = payload.substring(0,1).toInt();
       colours[colorIndex] = payload.substring(2);
 
@@ -236,29 +254,33 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
     // Sections
     if(firstLetter == "4"){
+      // Assign value
       sections_start[sections_iter] = payload.toInt();
+
+      // increment the iters variable, i.e the 'index' of the array we need to assign the next value to.
       sections_iter += 1;
     }
 
     // Beats
     if(firstLetter == "5"){
+      // Assign value
       beats[beats_iter] = payload.toInt();
+
+      // increment the iters variable, i.e the 'index' of the array we need to assign the next value to.
       beats_iter += 1;
     }
 
     // Lyrics
     if(firstLetter == "6"){
+      // Assign value
       lyrics_start[lyrics_iter] = payload.toInt();
     }
     if(firstLetter = "7"){
+      // Assign value
       lyrics[lyrics_iter] = payload;
-      lyrics_iter += 1;
-    }
 
-    // End the data collection and start the loop
-    if(firstLetter == "8"){
-      startMS = millis();
-      running = true;
+      // increment the iters variable, i.e the 'index' of the array we need to assign the next value to.
+      lyrics_iter += 1;
     }
   }
 }
