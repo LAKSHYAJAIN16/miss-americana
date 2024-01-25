@@ -1,4 +1,8 @@
 from threading import Thread
+
+"""
+Helper class which holds a thread which contains a return value, since python doesn't natively support that
+"""
 class ThreadWithReturnValue(Thread):
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs={}, Verbose=None):

@@ -1,11 +1,10 @@
-import soundfile as sf
 import paho.mqtt.client as mqtt
+import time
 
 from pydub import AudioSegment
 from pydub.playback import play
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from config.config import BUFFER_SIZE_SECTIONS, BUFFER_SIZE_BEATS
 from modules.spotify import spotifyThread
 from modules.youtube import youtubeThread
 from modules.lyrics import lyricThread
@@ -15,13 +14,14 @@ from utils.taylorThreading import ThreadWithReturnValue
 n = input("Enter the name of the Song: ")
 artist = input("Enter the name of the Artist : ")
 
-# MQTT STUFF
+# MQTT Initialization
 client = mqtt.Client()
 client.username_pw_set("gkvpckep", "yGbZQKc8MAma")
 client.connect("awesome-fisher.cloudmqtt.com", 1883, 60)
 client.loop_start()
 
-def mqtt_initialization(spotify, lyrics, song, client):
+# MQTT function
+def mqtt_initialization(spotify, lyrics, client):
     # Start communication for MQTT. This is sort of a 'header' message.
     client.publish("RICKASTLEY", "START_PROCESSING")
 
@@ -36,28 +36,25 @@ def mqtt_initialization(spotify, lyrics, song, client):
     for k in range(len(spotify["colours"])):
         client.publish("RICKASTLEY","3:{0}:{1}".format(k, spotify["colours"][k]))
 
-    # Then, we send the initialization message to start our sections
-    client.publish("RICKASTLEY","4:S:none")
-
-    # Iterator to keep track of the index we need to send it to in the arduino arrah
-    cur_sections_iter = 0
-
-    # Format the array so that we get a new 30 elements
-    sectionBuf = spotify["sections"][0:BUFFER_SIZE_SECTIONS]
-
     # Send the sections. Eachs section is sent 
+    sectionBuf = spotify["sections"]
     for m in range(len(sectionBuf)):
-        client.publish("RICKASTLEY","4:N:{0}:{1}".format(m, sectionBuf[m][0]))
-        client.publish("RICKASTLEY","4:M:{0}:{1}".format(m, sectionBuf[m][1])) 
+        client.publish("RICKASTLEY","4:{0}".format(sectionBuf[m]))
         
     # Format the beats array so we get a new Beats_Buffer amount
-    beats_buf = spotify["beats"][0:BUFFER_SIZE_BEATS]
-    
+    beats_buf = spotify["beats"]
     for l in range(len(beats_buf)):
-        client.publish("RICKASTLEY","6:{0}:{1}".format(l, beats_buf[m]))
-    
+        client.publish("RICKASTLEY","5:{0}".format(beats_buf[m]))
 
-# Threads, because WTF IS GOING ON
+    # Send the Lyrics
+    for l in range(len(lyrics)):
+        client.publish("RICKASTLEY","6:{0}".format(lyrics[l][0]))
+        client.publish("RICKASTLEY","7:{0}".format(lyrics[l][1]))
+
+    # Stop Communicating
+    client.publish("RICKASTLEY","STOP")
+
+# Run all of the requests concurrently, to optimize program
 t1 = ThreadWithReturnValue(target=spotifyThread, args=(n, artist))
 t2 = ThreadWithReturnValue(target=youtubeThread, args=(n, artist))
 t3 = ThreadWithReturnValue(target=lyricThread, args=(n, artist))
@@ -66,17 +63,17 @@ t3 = ThreadWithReturnValue(target=lyricThread, args=(n, artist))
 t3.start()
 t2.start()
 t1.start()
+
+# Wait for threads to end
 lyrics = t3.join()
 spotify = t1.join()
 song = t2.join()
-print("....ok?")
 
 # Initialize MQTT
-mqtt_initialization(spotify, lyrics, song, client)
+mqtt_initialization(spotify, lyrics, client)
 
-# Get length of song 
-sf_file = sf.SoundFile(song[1])
-dur = round((sf_file.frames / sf_file.samplerate),2)
+# Wait a little bit to account for the delay
+time.sleep(2)
 
 # Play song
 play(song[0])

@@ -1,3 +1,6 @@
+"""
+The Colour creator function takes in teh attributes of the song, as returnd by spotify, and changes them into colours
+"""
 def colour_creator(acoustic, dance, energy, tempo, valence):
     # Define the types
     types = [
@@ -37,7 +40,8 @@ def colour_creator(acoustic, dance, energy, tempo, valence):
             "f2f2f2"
         ],
     }
-    # Define weight
+
+    # Define default initializations
     weight = 0
     colors = []
     type = ""

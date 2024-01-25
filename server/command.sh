@@ -1,1 +1,0 @@
-& C:/Users/USER/AppData/Local/Programs/Python/Python310/python.exe -m flask --app main run

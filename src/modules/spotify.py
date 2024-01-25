@@ -2,8 +2,8 @@ import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from modules.colours import colour_creator
-from config.config import SAMPLE_DEGREE
 
+SAMPLE_DEGREE=2
 def spotifyThread(name, artist):  
     # Init Spotify
     spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id="7f9b0d52c40944878346f258892e14d3", client_secret="93fcf0381dec406c8c9bc55c07b739e2"))
@@ -25,40 +25,26 @@ def spotifyThread(name, artist):
     colors, weight, type = colour_creator(acoustic, dance, energy, tempo, valence)
     print(colors)
     print(weight)
-    print(type)
     
     # Get audio analysis, because why not?
     aud_analysis = spotify.audio_analysis(track)
     
     # Establish beat array and get most common beat
     new_beats = []
-    beats = {}
     for j in aud_analysis["beats"]:
-        new_beats.append([])
-        new_beats[-1].append(round(j["start"], SAMPLE_DEGREE))
-        if round(j["duration"], SAMPLE_DEGREE) in beats:    
-            beats[round(j["duration"], SAMPLE_DEGREE)] += 1
-        else:
-            beats[round(j["duration"], SAMPLE_DEGREE)] = 1
-     
-    # Get Beat Length
-    beat_length = max(zip(beats.values(), beats.keys()))[1]
+        new_beats.append(round(j["start"], SAMPLE_DEGREE))
          
     # Revise the sections a bit to remove unneccesary data
     new_sections = []
     for k in aud_analysis["sections"]:
-        new_sections.append([])
-        new_sections[-1].append(round(k["start"], SAMPLE_DEGREE))
-        new_sections[-1].append(round(k["loudness"], SAMPLE_DEGREE))
+        new_sections.append(round(k["start"], SAMPLE_DEGREE))
  
     OUT = {
-        "track_id" : track,
         "colours" : colors,
         "weight" : weight,
         "type" : type,
         "sections" : new_sections,
-        "beats" : new_beats,
-        "beat_length" : beat_length
+        "beats" : new_beats
     }    
     
     # JSON write
